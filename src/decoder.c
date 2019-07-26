@@ -16,6 +16,7 @@
 
 #include <Python.h>
 #include <bytesobject.h>
+#include <numpy/arrayobject.h>
 
 #include "common.h"
 #include "markers.h"
@@ -697,6 +698,13 @@ static PyObject* _decode_array(_ubjson_decoder_buffer_t *buffer) {
             BAIL_ON_NULL(list = PyBytes_FromStringAndSize(NULL, params.count));
             READ_INTO_OR_BAIL(params.count, PyBytes_AS_STRING(list), "bytes array");
             return list;
+        // special case - numpy signed byte array
+        } else if ((TYPE_INT8 == params.type) && !buffer->prefs.no_bytes) {
+            npy_intp dims[1];
+            dims[0] = params.count;
+            BAIL_ON_NULL(list = PyArray_SimpleNew(1, dims, NPY_INT8));
+            READ_INTO_OR_BAIL(params.count, PyArray_BYTES(list), "numpy int8 array");
+            return list;
         // special case - no data types
         } else if (_is_no_data_type(params.type)) {
             BAIL_ON_NULL(list = PyList_New(params.count));
@@ -1027,6 +1035,9 @@ bail:
 int _ubjson_decoder_init(void) {
     PyObject *tmp_module = NULL;
     PyObject *tmp_obj = NULL;
+
+    /* Load all of the `numpy` functionality. */
+    import_array();
 
     // try to determine floating point format / endianess
     _pyfuncs_ubj_detect_formats();

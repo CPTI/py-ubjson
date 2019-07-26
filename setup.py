@@ -32,6 +32,11 @@ from distutils.command.build_ext import build_ext
 from distutils.errors import CCompilerError
 from distutils.errors import DistutilsPlatformError, DistutilsExecError
 
+try:
+    import numpy.distutils.misc_util
+except ImportError:
+    warnings.warn("Extension modules: numpy-devel required.")
+
 from ubjson import __version__ as version
 
 
@@ -66,6 +71,7 @@ class BuildExtWarnOnFail(build_ext):
 BUILD_EXTENSIONS = 'PYUBJSON_NO_EXTENSION' not in os.environ
 
 COMPILE_ARGS = ['-std=c99']
+COMPILE_ARGS += ['-DNPY_NO_DEPRECATED_API ']
 # For testing/debug only - some of these are GCC-specific
 # COMPILE_ARGS += ['-Wall', '-Wextra', '-Wundef', '-Wshadow', '-Wcast-align', '-Wcast-qual', '-Wstrict-prototypes',
 #                  '-pedantic']
@@ -83,6 +89,8 @@ setup(
     url='https://github.com/Iotic-Labs/py-ubjson',
     license='Apache License 2.0',
     packages=['ubjson'],
+    install_requires=['numpy'],
+    setup_requires=['numpy'],
     extras_require={
         'dev': [
             'Pympler>=0.7 ,<0.8',
@@ -93,6 +101,7 @@ setup(
     ext_modules=([Extension('_ubjson', sorted(glob('src/*.c')), extra_compile_args=COMPILE_ARGS)]
                  if BUILD_EXTENSIONS else []),
     cmdclass={"build_ext": BuildExtWarnOnFail},
+    include_dirs=numpy.distutils.misc_util.get_numpy_include_dirs(),
     keywords=['ubjson', 'ubj'],
     classifiers=[
         'Development Status :: 5 - Production/Stable',

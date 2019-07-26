@@ -29,14 +29,16 @@ To use a file-like object as input/output, use dump() & load() methods instead.
 try:
     from _ubjson import dump, dumpb, load, loadb
     EXTENSION_ENABLED = True
+    NUMPY_ARRAY_INT8_SUPPORT = True
 except ImportError:  # pragma: no cover
     from .encoder import dump, dumpb
     from .decoder import load, loadb
     EXTENSION_ENABLED = False
+    NUMPY_ARRAY_INT8_SUPPORT = False
 
 from .encoder import EncoderException
 from .decoder import DecoderException
 
 __version__ = '0.14.0'
 
-__all__ = ('EXTENSION_ENABLED', 'dump', 'dumpb', 'EncoderException', 'load', 'loadb', 'DecoderException')
+__all__ = ('EXTENSION_ENABLED', 'NUMPY_ARRAY_INT8_SUPPORT', 'dump', 'dumpb', 'EncoderException', 'load', 'loadb', 'DecoderException')
